@@ -17,28 +17,23 @@ int words[8][20];
 int word_len[8];
 int nwords = 0;
 
-int check(void)
+long long weight[26];
+int lead[26];
+
+int check(long long sum)
 {
     checked++;
 
-    long long left = 0;
-    long long right = 0;
+    if (sum != 0)
+        return 0;
 
-    for (int w = 0; w < nwords; w++) {
-        if (word_len[w] > 1 && digit[words[w][0]] == 0)
+    for (int i = 0; i < count; i++) {
+        int L = letters[i] - 'A';
+        if (lead[L] == 1 && digit[L] == 0)
             return 0;
-
-        long long number = 0;
-        for (int j = 0; j < word_len[w]; j++)
-            number = number * 10 + digit[words[w][j]];
-
-        if (w == nwords - 1)
-            right = number;
-        else
-            left = left + number;
     }
 
-    return left == right;
+    return 1;
 }
 
 void make_text(void)
@@ -53,22 +48,24 @@ void make_text(void)
     text[i] = '\0';
 }
 
-void assign(int i)
+void assign(int i, long long sum)
 {
     if (found) return;
 
     if (i == count) {
-        if (check()) found = 1;
+        if (check(sum)) found = 1;
         return;
     }
+
+    int L = letters[i] - 'A';
 
     for (int d = 0; d <= 9; d++) {
         if (found) return;
         if (used[d]) continue;
 
         used[d] = 1;
-        digit[letters[i] - 'A'] = d;
-        assign(i + 1);
+        digit[L] = d;
+        assign(i + 1, sum + weight[L] * d);
         used[d] = 0;
     }
 }
@@ -108,7 +105,25 @@ void solve(const char* puzzle)
         if (c == '\0') break;
     }
 
-    assign(0);
+    for (int L = 0; L < 26; L++) {
+        weight[L] = 0;
+        lead[L] = 0;
+    }
+
+    for (int w = 0; w < nwords; w++) {
+        long long p = 1;
+        for (int j = word_len[w] - 1; j >= 0; j--) {
+            if (w == nwords - 1)
+                weight[words[w][j]] -= p;
+            else
+                weight[words[w][j]] += p;
+            p = p * 10;
+        }
+        if (word_len[w] > 1)
+            lead[words[w][0]] = 1;
+    }
+
+    assign(0, 0);
 
     if (found) make_text();
 }
