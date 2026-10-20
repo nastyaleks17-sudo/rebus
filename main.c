@@ -66,6 +66,7 @@ void assign(int i, long long sum)
     for (int d = 0; d <= 9; d++) {
         if (found) return;
         if (used[d]) continue;
+        if (d == 0 && lead[L] == 1) continue;
 
         used[d] = 1;
         digit[L] = d;
@@ -125,6 +126,20 @@ void solve(const char* puzzle)
         }
         if (word_len[w] > 1)
             lead[words[w][0]] = 1;
+    }
+
+    for (int i = 0; i < count; i++) {
+        for (int j = i + 1; j < count; j++) {
+            long long wi = weight[letters[i] - 'A'];
+            long long wj = weight[letters[j] - 'A'];
+            if (wi < 0) wi = -wi;
+            if (wj < 0) wj = -wj;
+            if (wj > wi) {
+                char tmp = letters[i];
+                letters[i] = letters[j];
+                letters[j] = tmp;
+            }
+        }
     }
 
     rest[count] = 0;
