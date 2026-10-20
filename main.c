@@ -12,13 +12,38 @@ int  found = 0;
 long long checked = 0;
 
 int is_letter(char c) { return c >= 'A' && c <= 'Z'; }
-int is_digit(char c) { return c >= '0' && c <= '9'; }
+
+int words[8][20];
+int word_len[8];
+int nwords = 0;
 
 int check(void)
 {
-    int i;
     checked++;
 
+    long long left = 0;
+    long long right = 0;
+
+    for (int w = 0; w < nwords; w++) {
+        if (word_len[w] > 1 && digit[words[w][0]] == 0)
+            return 0;
+
+        long long number = 0;
+        for (int j = 0; j < word_len[w]; j++)
+            number = number * 10 + digit[words[w][j]];
+
+        if (w == nwords - 1)
+            right = number;
+        else
+            left = left + number;
+    }
+
+    return left == right;
+}
+
+void make_text(void)
+{
+    int i;
     for (i = 0; rebus[i] != '\0'; i++) {
         if (is_letter(rebus[i]))
             text[i] = '0' + digit[rebus[i] - 'A'];
@@ -26,36 +51,6 @@ int check(void)
             text[i] = rebus[i];
     }
     text[i] = '\0';
-
-    long long left = 0;
-    long long right = 0;
-    long long number = 0;
-    int in_number = 0;
-    int after_equal = 0;
-
-    for (i = 0; ; i++) {
-        char c = text[i];
-
-        if (is_digit(c)) {
-            if (!in_number && c == '0' && is_digit(text[i + 1]))
-                return 0;
-            number = number * 10 + (c - '0');
-            in_number = 1;
-        }
-        else if (in_number) {
-            if (after_equal)
-                right = number;
-            else
-                left = left + number;
-            number = 0;
-            in_number = 0;
-        }
-
-        if (c == '=') after_equal = 1;
-        if (c == '\0') break;
-    }
-
-    return left == right;
 }
 
 void assign(int i)
@@ -97,7 +92,25 @@ void solve(const char* puzzle)
         }
     }
 
+    nwords = 0;
+    int len = 0;
+    for (int i = 0; ; i++) {
+        char c = rebus[i];
+        if (is_letter(c)) {
+            words[nwords][len] = c - 'A';
+            len++;
+        }
+        else if (len > 0) {
+            word_len[nwords] = len;
+            nwords++;
+            len = 0;
+        }
+        if (c == '\0') break;
+    }
+
     assign(0);
+
+    if (found) make_text();
 }
 
 #define REPEAT 5
