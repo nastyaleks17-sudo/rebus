@@ -1,6 +1,7 @@
 #include <stdio.h>
+#include <time.h>
 
-const char* rebus = "SEND + MORE = MONEY";
+const char* rebus;
 
 char letters[10];
 int  count = 0;
@@ -77,9 +78,16 @@ void assign(int i)
     }
 }
 
-int main(void)
+void solve(const char* puzzle)
 {
     int seen[26] = { 0 };
+
+    rebus = puzzle;
+    count = 0;
+    found = 0;
+    checked = 0;
+    for (int d = 0; d <= 9; d++) used[d] = 0;
+
     for (int i = 0; rebus[i] != '\0'; i++) {
         char c = rebus[i];
         if (is_letter(c) && seen[c - 'A'] == 0) {
@@ -90,13 +98,38 @@ int main(void)
     }
 
     assign(0);
+}
 
-    printf("%s\n", rebus);
-    if (found)
-        printf("%s\n", text);
-    else
-        printf("No solution\n");
-    printf("Checked: %lld\n", checked);
+#define REPEAT 5
+
+int main(void)
+{
+    const char* tests[] = {
+        "BE + BE = MOO",
+        "TO + GO = OUT",
+        "ODD + ODD = EVEN",
+        "TWO + TWO = FOUR",
+        "SEND + MORE = MONEY",
+        "BIG + CAT = LION",
+        "CROSS + ROADS = DANGER",
+        "A + B + C + D + E + F + G = HI",
+        "ELEVEN + NINE + FIVE + FIVE = THIRTY",
+    };
+    int n = sizeof(tests) / sizeof(tests[0]);
+
+    printf("%-38s %7s %10s %12s   %s\n", "Rebus", "Letters", "Time, ms", "Checked", "Answer");
+
+    for (int t = 0; t < n; t++) {
+        clock_t start = clock();
+        for (int r = 0; r < REPEAT; r++)
+            solve(tests[t]);
+        clock_t end = clock();
+
+        double ms = (double)(end - start) * 1000.0 / CLOCKS_PER_SEC / REPEAT;
+
+        printf("%-38s %7d %10.2f %12lld   %s\n",
+            tests[t], count, ms, checked, found ? text : "No solution");
+    }
 
     return 0;
 }
