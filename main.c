@@ -19,6 +19,7 @@ int nwords = 0;
 
 long long weight[26];
 int lead[26];
+long long rest[11];
 
 int check(long long sum)
 {
@@ -51,6 +52,9 @@ void make_text(void)
 void assign(int i, long long sum)
 {
     if (found) return;
+
+    if (sum > rest[i] || -sum > rest[i])
+        return;
 
     if (i == count) {
         if (check(sum)) found = 1;
@@ -123,12 +127,17 @@ void solve(const char* puzzle)
             lead[words[w][0]] = 1;
     }
 
+    rest[count] = 0;
+    for (int i = count - 1; i >= 0; i--) {
+        long long w = weight[letters[i] - 'A'];
+        if (w < 0) w = -w;
+        rest[i] = rest[i + 1] + 9 * w;
+    }
+
     assign(0, 0);
 
     if (found) make_text();
 }
-
-#define REPEAT 5
 
 int main(void)
 {
@@ -148,14 +157,18 @@ int main(void)
     printf("%-38s %7s %10s %12s   %s\n", "Rebus", "Letters", "Time, ms", "Checked", "Answer");
 
     for (int t = 0; t < n; t++) {
+        int runs = 0;
         clock_t start = clock();
-        for (int r = 0; r < REPEAT; r++)
+        clock_t end;
+        do {
             solve(tests[t]);
-        clock_t end = clock();
+            runs++;
+            end = clock();
+        } while (end - start < CLOCKS_PER_SEC / 5);
 
-        double ms = (double)(end - start) * 1000.0 / CLOCKS_PER_SEC / REPEAT;
+        double ms = (double)(end - start) * 1000.0 / CLOCKS_PER_SEC / runs;
 
-        printf("%-38s %7d %10.2f %12lld   %s\n",
+        printf("%-38s %7d %10.4f %12lld   %s\n",
             tests[t], count, ms, checked, found ? text : "No solution");
     }
 
